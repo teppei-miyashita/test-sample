@@ -1,0 +1,38 @@
+# Runtime configuration — EDU-C2-045 (SchoolExcursionRiskAssessmentAgent)
+#
+# This file carries RUNTIME-tunable parameters only (CLAUDE.md §5 agent.yaml vs
+# config.yaml split). Static identity lives in config/agent.yaml.
+#
+# Values under `runtime:` override the baked-in defaults in
+# src/services/runtime_config.py. Anything omitted keeps its coded default, so the
+# agent runs deterministically even if this file is absent. Citizen developers tune
+# the rule table, source allowlists, and thresholds here (operation guide §Config).
+
+# ── AgentBaseGraph backbone parameters ──────────────────────────────────
+max_retry: 1
+timeout_s: 30
+memory_enabled: false
+llm_provider: "azure_openai"
+llm_model: "azure-openai-deployment"
+
+# Human-in-the-loop is DISABLED: the output is a human-review aid delivered in one
+# linear pass; there is no in-graph interrupt/resume. PB-7 is auto-waived.
+hitl:
+  enabled: false
+
+# No autonomous loop / LLM budget ceiling is required. The standalone adapter
+# injects an optional LLM client into Step 5 for narrative wording only;
+# correctness and checklist status selection never depend on it.
+budget_usd: null
+
+# ── Domain runtime overrides (mirror src/services/runtime_config.DEFAULTS) ──
+runtime:
+  max_request_bytes: 16384
+  max_student_count: 2000
+  corpus_staleness_threshold_days: 120   # quarterly refresh + MEXT-update refresh
+  rag_top_k: 5
+  rag_ranking_cutoff: 0.35
+  rag_partial_coverage_threshold: 0.6
+  allowed_school_source_schemes: ["schooldata", "https"]
+  allowed_guidance_source_schemes: ["qdrant", "https"]
+  llm_narrative_timeout_s: 15
